@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/ui/StatCard';
 import { ChecklistItem } from '@/components/ui/ChecklistItem';
@@ -28,41 +29,56 @@ export default function Dashboard() {
   return (
     <DashboardLayout>
       {/* Welcome */}
-      <div className="mb-8">
+      <motion.div 
+        className="mb-8"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1 className="text-3xl font-bold text-foreground mb-2">Welcome, @alexdev 👋</h1>
         <p className="text-muted-foreground">Find your perfect hackathon teammates</p>
-      </div>
+      </motion.div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid sm:grid-cols-3 gap-4">
-            {stats.map((stat) => (
-              <StatCard key={stat.title} {...stat} />
+            {stats.map((stat, i) => (
+              <StatCard key={stat.title} {...stat} index={i} />
             ))}
           </div>
 
           {/* Getting Started */}
-          <div className="card-base p-6">
+          <motion.div 
+            className="card-base p-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
             <h2 className="section-title">Get Started</h2>
             <div className="space-y-2">
-              {checklist.map((item) => (
-                <ChecklistItem key={item.text} {...item} />
+              {checklist.map((item, i) => (
+                <ChecklistItem key={item.text} {...item} index={i} />
               ))}
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Activity Feed */}
-        <div className="card-base p-6">
+        <motion.div 
+          className="card-base p-6"
+          initial={{ opacity: 0, x: 30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           <h2 className="section-title">Recent Activity</h2>
           <div className="space-y-1">
             {activities.map((activity, i) => (
-              <ActivityItem key={i} {...activity} />
+              <ActivityItem key={i} {...activity} index={i} />
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </DashboardLayout>
   );
