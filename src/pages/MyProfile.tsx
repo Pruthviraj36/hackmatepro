@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ProgressBar } from '@/components/ui/ProgressBar';
 import { SkillTag } from '@/components/ui/SkillTag';
 import { InterestTag } from '@/components/ui/InterestTag';
-import { User, Camera, Plus, Trash2, Edit2, X } from 'lucide-react';
+import { User, Camera, Plus, Trash2, Edit2 } from 'lucide-react';
 
 const availableSkills = ['React', 'Python', 'TypeScript', 'Node.js', 'Machine Learning', 'UI/UX', 'Rust', 'Go', 'Flutter', 'Docker', 'AWS', 'Solidity'];
 const availableInterests = ['Web Dev', 'AI/ML', 'Cybersecurity', 'Game Dev', 'DevTools', 'Web3', 'Mobile', 'Open Source'];
@@ -47,23 +48,42 @@ export default function MyProfile() {
   return (
     <DashboardLayout>
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-foreground mb-6">Edit Profile</h1>
+        <motion.h1 
+          className="text-3xl font-bold text-foreground mb-6"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Edit Profile
+        </motion.h1>
 
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Basic Info */}
-            <div className="card-base p-6">
+            <motion.div 
+              className="card-base p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 }}
+            >
               <h2 className="section-title">Basic Information</h2>
               <div className="space-y-4">
                 {/* Avatar */}
                 <div className="flex items-center gap-4">
-                  <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center relative">
+                  <motion.div 
+                    className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center relative"
+                    whileHover={{ scale: 1.05 }}
+                  >
                     <User className="w-10 h-10 text-primary" />
-                    <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center hover:opacity-90 transition-opacity">
+                    <motion.button 
+                      className="absolute bottom-0 right-0 w-8 h-8 bg-primary rounded-full flex items-center justify-center hover:opacity-90 transition-opacity"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
                       <Camera className="w-4 h-4 text-primary-foreground" />
-                    </button>
-                  </div>
+                    </motion.button>
+                  </motion.div>
                   <div>
                     <p className="font-medium text-foreground">Profile Picture</p>
                     <p className="text-sm text-muted-foreground">PNG, JPG up to 5MB</p>
@@ -116,40 +136,58 @@ export default function MyProfile() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
+                <motion.div 
+                  className="flex items-center justify-between p-3 bg-muted rounded-lg"
+                  whileHover={{ scale: 1.01 }}
+                >
                   <div>
                     <p className="font-medium text-foreground">Looking for teammates</p>
                     <p className="text-sm text-muted-foreground">Let others know you're available</p>
                   </div>
-                  <button
+                  <motion.button
                     onClick={() => setLookingForTeammates(!lookingForTeammates)}
                     className={`w-12 h-7 rounded-full relative transition-colors ${
                       lookingForTeammates ? 'bg-primary' : 'bg-muted-foreground'
                     }`}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    <span
-                      className={`absolute top-1 w-5 h-5 bg-primary-foreground rounded-full transition-transform ${
-                        lookingForTeammates ? 'right-1' : 'left-1'
-                      }`}
+                    <motion.span
+                      className="absolute top-1 w-5 h-5 bg-primary-foreground rounded-full"
+                      animate={{ x: lookingForTeammates ? 22 : 4 }}
+                      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
                     />
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Skills */}
-            <div className="card-base p-6">
+            <motion.div 
+              className="card-base p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
               <h2 className="section-title">Skills</h2>
               <div className="flex flex-wrap gap-2 mb-4">
-                {skills.map((skill) => (
-                  <SkillTag
-                    key={skill.name}
-                    name={skill.name}
-                    proficiency={skill.proficiency}
-                    removable
-                    onRemove={() => removeSkill(skill.name)}
-                  />
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {skills.map((skill) => (
+                    <motion.div
+                      key={skill.name}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      layout
+                    >
+                      <SkillTag
+                        name={skill.name}
+                        proficiency={skill.proficiency}
+                        removable
+                        onRemove={() => removeSkill(skill.name)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">Add skills</label>
@@ -170,98 +208,174 @@ export default function MyProfile() {
                     ))}
                 </select>
               </div>
-            </div>
+            </motion.div>
 
             {/* Interests */}
-            <div className="card-base p-6">
+            <motion.div 
+              className="card-base p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
               <h2 className="section-title">Interests</h2>
               <div className="flex flex-wrap gap-2 mb-4">
-                {interests.map((interest) => (
-                  <InterestTag
-                    key={interest}
-                    name={interest}
-                    removable
-                    onRemove={() => removeInterest(interest)}
-                  />
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {interests.map((interest) => (
+                    <motion.div
+                      key={interest}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      layout
+                    >
+                      <InterestTag
+                        name={interest}
+                        removable
+                        onRemove={() => removeInterest(interest)}
+                      />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
               <div className="flex flex-wrap gap-2">
                 {availableInterests
                   .filter((i) => !interests.includes(i))
-                  .map((interest) => (
-                    <button
+                  .map((interest, idx) => (
+                    <motion.button
                       key={interest}
                       onClick={() => setInterests([...interests, interest])}
                       className="px-3 py-1.5 rounded-full text-sm border border-dashed border-border text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: idx * 0.03 }}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                     >
                       + {interest}
-                    </button>
+                    </motion.button>
                   ))}
               </div>
-            </div>
+            </motion.div>
 
             {/* Hackathon History */}
-            <div className="card-base p-6">
+            <motion.div 
+              className="card-base p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.4 }}
+            >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="section-title mb-0">Hackathon History</h2>
-                <button className="btn-secondary text-sm py-2 flex items-center gap-1">
+                <motion.button 
+                  className="btn-secondary text-sm py-2 flex items-center gap-1"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
                   <Plus className="w-4 h-4" />
                   Add hackathon
-                </button>
+                </motion.button>
               </div>
               <div className="space-y-3">
-                {hackathons.map((hackathon, i) => (
-                  <div key={i} className="p-4 bg-muted/50 rounded-lg flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-foreground">{hackathon.name}</p>
-                      <p className="text-sm text-muted-foreground">{hackathon.date} • {hackathon.role}</p>
-                      <p className="text-sm text-foreground mt-1">
-                        {hackathon.projectName} • Team of {hackathon.teamSize}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button className="p-2 hover:bg-muted rounded-lg transition-colors">
-                        <Edit2 className="w-4 h-4 text-muted-foreground" />
-                      </button>
-                      <button className="p-2 hover:bg-destructive/10 rounded-lg transition-colors">
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <AnimatePresence>
+                  {hackathons.map((hackathon, i) => (
+                    <motion.div 
+                      key={i} 
+                      className="p-4 bg-muted/50 rounded-lg flex items-start justify-between"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: 20 }}
+                      transition={{ delay: i * 0.1 }}
+                      whileHover={{ scale: 1.01 }}
+                    >
+                      <div>
+                        <p className="font-semibold text-foreground">{hackathon.name}</p>
+                        <p className="text-sm text-muted-foreground">{hackathon.date} • {hackathon.role}</p>
+                        <p className="text-sm text-foreground mt-1">
+                          {hackathon.projectName} • Team of {hackathon.teamSize}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <motion.button 
+                          className="p-2 hover:bg-muted rounded-lg transition-colors"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <Edit2 className="w-4 h-4 text-muted-foreground" />
+                        </motion.button>
+                        <motion.button 
+                          className="p-2 hover:bg-destructive/10 rounded-lg transition-colors"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
-            </div>
+            </motion.div>
 
             {/* Save Button */}
-            <div className="flex justify-end gap-3">
-              <button className="btn-secondary">Cancel</button>
-              <button className="btn-primary">Save changes</button>
-            </div>
+            <motion.div 
+              className="flex justify-end gap-3"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+            >
+              <motion.button 
+                className="btn-secondary"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Cancel
+              </motion.button>
+              <motion.button 
+                className="btn-primary"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Save changes
+              </motion.button>
+            </motion.div>
           </div>
 
           {/* Sidebar */}
-          <div className="space-y-6">
+          <motion.div 
+            className="space-y-6"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
             <div className="card-base p-6 lg:sticky lg:top-24">
               <h3 className="font-semibold text-foreground mb-4">Profile Completeness</h3>
               <ProgressBar value={profileCompleteness} label="" showPercentage />
               <div className="mt-4 space-y-2">
                 {completenessItems.map((item, i) => (
-                  <div key={i} className="flex items-center gap-2 text-sm">
-                    <div
+                  <motion.div 
+                    key={i} 
+                    className="flex items-center gap-2 text-sm"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.05 }}
+                  >
+                    <motion.div
                       className={`w-4 h-4 rounded-full flex items-center justify-center ${
                         item.done ? 'bg-primary' : 'border-2 border-muted-foreground'
                       }`}
+                      animate={item.done ? { scale: [1, 1.2, 1] } : {}}
+                      transition={{ duration: 0.3 }}
                     >
                       {item.done && <span className="text-primary-foreground text-xs">✓</span>}
-                    </div>
+                    </motion.div>
                     <span className={item.done ? 'text-muted-foreground line-through' : 'text-foreground'}>
                       {item.text}
                     </span>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </DashboardLayout>

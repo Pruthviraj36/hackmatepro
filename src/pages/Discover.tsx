@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { UserCard } from '@/components/ui/UserCard';
 import { Filter, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
@@ -68,14 +69,24 @@ export default function Discover() {
 
   return (
     <DashboardLayout>
-      <div className="mb-6">
+      <motion.div 
+        className="mb-6"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <h1 className="text-3xl font-bold text-foreground mb-2">Discover Teammates</h1>
         <p className="text-muted-foreground">Find the perfect match for your next hackathon</p>
-      </div>
+      </motion.div>
 
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Filters Sidebar */}
-        <div className="lg:w-72 flex-shrink-0">
+        <motion.div 
+          className="lg:w-72 flex-shrink-0"
+          initial={{ opacity: 0, x: -30 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           <div className="card-base p-5 lg:sticky lg:top-24">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
@@ -90,102 +101,132 @@ export default function Discover() {
               </button>
             </div>
 
-            <div className={`space-y-5 ${filtersOpen ? '' : 'hidden lg:block'}`}>
-              {/* Skills */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Skills</label>
-                <div className="flex flex-wrap gap-1.5">
-                  {allSkills.map((skill) => (
-                    <button
-                      key={skill}
-                      onClick={() => toggleSkill(skill)}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                        selectedSkills.includes(skill)
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                      }`}
-                    >
-                      {skill}
+            <AnimatePresence>
+              {filtersOpen && (
+                <motion.div 
+                  className="space-y-5"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {/* Skills */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Skills</label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {allSkills.map((skill) => (
+                        <motion.button
+                          key={skill}
+                          onClick={() => toggleSkill(skill)}
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                            selectedSkills.includes(skill)
+                              ? 'bg-primary text-primary-foreground'
+                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          }`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {skill}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Hackathon */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Hackathon</label>
+                    <select className="input-base text-sm">
+                      <option value="">All hackathons</option>
+                      {hackathons.map((h) => (
+                        <option key={h} value={h}>{h}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Experience Level */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Experience Level</label>
+                    <div className="flex gap-1">
+                      {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
+                        <motion.button
+                          key={level}
+                          className="flex-1 px-2 py-1.5 text-xs font-medium rounded-lg bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                        >
+                          {level}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Location */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Location / Timezone</label>
+                    <input type="text" className="input-base text-sm" placeholder="e.g. PST, New York" />
+                  </div>
+
+                  {/* Availability */}
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium text-foreground">Looking for teammates</label>
+                    <button className="w-10 h-6 bg-primary rounded-full relative">
+                      <span className="absolute right-1 top-1 w-4 h-4 bg-primary-foreground rounded-full" />
                     </button>
-                  ))}
-                </div>
-              </div>
+                  </div>
 
-              {/* Hackathon */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Hackathon</label>
-                <select className="input-base text-sm">
-                  <option value="">All hackathons</option>
-                  {hackathons.map((h) => (
-                    <option key={h} value={h}>{h}</option>
-                  ))}
-                </select>
-              </div>
+                  {/* Sort */}
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">Sort by</label>
+                    <select className="input-base text-sm">
+                      <option>Best skill match</option>
+                      <option>Recently joined</option>
+                      <option>Most experience</option>
+                      <option>Highest achievements</option>
+                    </select>
+                  </div>
 
-              {/* Experience Level */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Experience Level</label>
-                <div className="flex gap-1">
-                  {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
-                    <button
-                      key={level}
-                      className="flex-1 px-2 py-1.5 text-xs font-medium rounded-lg bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
+                  {/* Actions */}
+                  <div className="flex gap-2 pt-2">
+                    <motion.button 
+                      className="btn-primary flex-1 text-sm py-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      {level}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Location */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Location / Timezone</label>
-                <input type="text" className="input-base text-sm" placeholder="e.g. PST, New York" />
-              </div>
-
-              {/* Availability */}
-              <div className="flex items-center justify-between">
-                <label className="text-sm font-medium text-foreground">Looking for teammates</label>
-                <button className="w-10 h-6 bg-primary rounded-full relative">
-                  <span className="absolute right-1 top-1 w-4 h-4 bg-primary-foreground rounded-full" />
-                </button>
-              </div>
-
-              {/* Sort */}
-              <div>
-                <label className="text-sm font-medium text-foreground mb-2 block">Sort by</label>
-                <select className="input-base text-sm">
-                  <option>Best skill match</option>
-                  <option>Recently joined</option>
-                  <option>Most experience</option>
-                  <option>Highest achievements</option>
-                </select>
-              </div>
-
-              {/* Actions */}
-              <div className="flex gap-2 pt-2">
-                <button className="btn-primary flex-1 text-sm py-2">Apply</button>
-                <button className="btn-secondary flex-1 text-sm py-2 flex items-center justify-center gap-1">
-                  <RotateCcw className="w-4 h-4" />
-                  Reset
-                </button>
-              </div>
-            </div>
+                      Apply
+                    </motion.button>
+                    <motion.button 
+                      className="btn-secondary flex-1 text-sm py-2 flex items-center justify-center gap-1"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Reset
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </div>
+        </motion.div>
 
         {/* Results Grid */}
         <div className="flex-1">
-          <div className="flex items-center justify-between mb-4">
+          <motion.div 
+            className="flex items-center justify-between mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
+          >
             <span className="text-sm text-muted-foreground">{mockUsers.length} teammates found</span>
-          </div>
+          </motion.div>
           <div className="grid md:grid-cols-2 gap-4">
-            {mockUsers.map((user) => (
+            {mockUsers.map((user, index) => (
               <UserCard
                 key={user.username}
                 {...user}
                 invited={invitedUsers.includes(user.username)}
                 onInvite={() => handleInvite(user.username)}
+                index={index}
               />
             ))}
           </div>
