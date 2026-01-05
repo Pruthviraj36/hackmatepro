@@ -7,6 +7,7 @@ import { Check, X, Clock, Send, Inbox, Loader2, User as UserIcon, MessageSquare 
 import { useAuth } from '@/components/providers/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface User {
   id: string;
@@ -30,6 +31,7 @@ export default function Invitations() {
   const { token, user: authUser } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -90,6 +92,21 @@ export default function Invitations() {
     }
   };
 
+  const prefetchProfile = async (username: string) => {
+    if (!token) return;
+    await queryClient.prefetchQuery({
+      queryKey: ['user-profile', username],
+      queryFn: async () => {
+        const res = await fetch(`/api/users/${username}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json();
+      },
+      staleTime: 1000 * 60 * 5,
+    });
+  };
+
   const receivedInvitations = invitations.filter(inv => inv.receiverId === authUser?.id);
   const sentInvitations = invitations.filter(inv => inv.senderId === authUser?.id);
 
@@ -148,6 +165,7 @@ export default function Invitations() {
                       <div
                         className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden cursor-pointer"
                         onClick={() => router.push(`/user/${activeTab === 'received' ? inv.sender.username : inv.receiver.username}`)}
+                        onMouseEnter={() => prefetchProfile(activeTab === 'received' ? inv.sender.username : inv.receiver.username)}
                       >
                         {(activeTab === 'received' ? inv.sender.avatar : inv.receiver.avatar) ? (
                           <img

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { SkillTag } from '@/components/ui/SkillTag';
 import { SkillPicker } from '@/components/ui/SkillPicker';
@@ -28,6 +28,7 @@ export default function Discover() {
   const { token } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [isSending, setIsSending] = useState<string | null>(null);
   const [selectedSkills, setSelectedSkills] = useState<{ name: string, proficiency: any }[]>([]);
@@ -76,6 +77,15 @@ export default function Discover() {
     } finally {
       setIsSending(null);
     }
+  };
+
+  const prefetchProfile = async (username: string) => {
+    if (!token) return;
+    await queryClient.prefetchQuery({
+      queryKey: ['user-profile', username],
+      queryFn: () => fetcher(`/api/users/${username}`),
+      staleTime: 1000 * 60 * 5,
+    });
   };
 
   return (
@@ -138,6 +148,7 @@ export default function Discover() {
                       <div
                         className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden cursor-pointer"
                         onClick={() => router.push(`/user/${user.username}`)}
+                        onMouseEnter={() => prefetchProfile(user.username)}
                       >
                         {user.avatar ? (
                           <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
@@ -149,6 +160,7 @@ export default function Discover() {
                         <h3
                           className="font-bold text-lg text-foreground hover:text-primary transition-colors cursor-pointer"
                           onClick={() => router.push(`/user/${user.username}`)}
+                          onMouseEnter={() => prefetchProfile(user.username)}
                         >
                           @{user.username}
                         </h3>
@@ -189,6 +201,7 @@ export default function Discover() {
                     <button
                       className="btn-secondary flex-1 py-2 text-sm flex items-center justify-center gap-2"
                       onClick={() => router.push(`/user/${user.username}`)}
+                      onMouseEnter={() => prefetchProfile(user.username)}
                     >
                       Profile
                     </button>

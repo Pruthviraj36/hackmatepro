@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { User, Trophy, Code } from 'lucide-react';
 import { SkillTag } from './SkillTag';
 import Link from 'next/link';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 interface UserCardProps {
   username: string;
@@ -28,16 +30,34 @@ export function UserCard({
   onInvite,
   index = 0,
 }: UserCardProps) {
+  const queryClient = useQueryClient();
+  const { token } = useAuth();
+
   const displayedSkills = skills.slice(0, 5);
   const moreSkills = skills.length - 5;
 
+  const prefetchProfile = async () => {
+    if (!token) return;
+    await queryClient.prefetchQuery({
+      queryKey: ['user-profile', username],
+      queryFn: async () => {
+        const res = await fetch(`/api/users/${username}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json();
+      },
+      staleTime: 1000 * 60 * 5,
+    });
+  };
+
   return (
-    <motion.div 
+    <motion.div
       className="card-base card-hover p-5"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ 
-        duration: 0.4, 
+      transition={{
+        duration: 0.4,
         delay: index * 0.05,
         ease: [0.25, 0.46, 0.45, 0.94]
       }}
@@ -45,9 +65,10 @@ export function UserCard({
     >
       <div className="flex items-start gap-4">
         {/* Avatar */}
-        <motion.div 
-          className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0"
+        <motion.div
+          className="w-14 h-14 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 cursor-pointer"
           whileHover={{ scale: 1.05 }}
+          onMouseEnter={prefetchProfile}
         >
           {avatarUrl ? (
             <img src={avatarUrl} alt={username} className="w-14 h-14 rounded-full object-cover" />
@@ -94,7 +115,11 @@ export function UserCard({
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            <Link href={`/user/${username}`} className="btn-secondary text-sm py-2">
+            <Link
+              href={`/user/${username}`}
+              className="btn-secondary text-sm py-2"
+              onMouseEnter={prefetchProfile}
+            >
               View profile
             </Link>
             <motion.button

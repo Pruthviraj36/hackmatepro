@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronDown, User, Settings, LogOut, Zap, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { useQueryClient } from '@tanstack/react-query';
 
 const navLinks = [
   { name: 'Dashboard', href: '/dashboard' },
@@ -22,7 +23,49 @@ export function Navbar() {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const { user, logout } = useAuth();
+  const { user, logout, token } = useAuth();
+  const queryClient = useQueryClient();
+
+  const prefetchData = async (href: string) => {
+    if (!token) return;
+
+    const fetchOptions = {
+      headers: { Authorization: `Bearer ${token}` }
+    };
+
+    const fetcher = (url: string) => fetch(url, fetchOptions).then(res => res.json());
+
+    switch (href) {
+      case '/discover':
+        await queryClient.prefetchQuery({
+          queryKey: ['discover'],
+          queryFn: () => fetcher('/api/users/discover'),
+          staleTime: 1000 * 60 * 5,
+        });
+        break;
+      case '/connections':
+        await queryClient.prefetchQuery({
+          queryKey: ['matches'],
+          queryFn: () => fetcher('/api/matches'),
+          staleTime: 1000 * 60 * 5,
+        });
+        break;
+      case '/invitations':
+        await queryClient.prefetchQuery({
+          queryKey: ['invitations'],
+          queryFn: () => fetcher('/api/invitations'),
+          staleTime: 1000 * 60 * 5,
+        });
+        break;
+      case '/hackathons':
+        await queryClient.prefetchQuery({
+          queryKey: ['hackathons'],
+          queryFn: () => fetcher('/api/hackathons'),
+          staleTime: 1000 * 60 * 5,
+        });
+        break;
+    }
+  };
 
   const isActive = (href: string) => pathname === href;
   const toggleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -51,6 +94,7 @@ export function Navbar() {
                 key={link.name}
                 href={link.href}
                 className={`nav-link ${isActive(link.href) ? 'nav-link-active' : ''}`}
+                onMouseEnter={() => prefetchData(link.href)}
               >
                 {link.name}
               </Link>

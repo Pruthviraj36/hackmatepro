@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Users, Mail, Github, Linkedin, Twitter, Globe, MessageSquare, ExternalLink, Loader2, User as UserIcon } from 'lucide-react';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
@@ -39,6 +39,7 @@ export default function Connections() {
     const { token, user: authUser } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
+    const queryClient = useQueryClient();
 
     const { data: matches, isLoading } = useQuery<Match[]>({
         queryKey: ['matches'],
@@ -46,6 +47,21 @@ export default function Connections() {
         enabled: !!token,
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
+
+    const prefetchProfile = async (username: string) => {
+        if (!token) return;
+        await queryClient.prefetchQuery({
+            queryKey: ['user-profile', username],
+            queryFn: async () => {
+                const res = await fetch(`/api/users/${username}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Failed to fetch');
+                return res.json();
+            },
+            staleTime: 1000 * 60 * 5,
+        });
+    };
 
     return (
         <DashboardLayout>
@@ -88,6 +104,7 @@ export default function Connections() {
                                     <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
                                         <button
                                             onClick={() => router.push(`/user/${match.user.username}`)}
+                                            onMouseEnter={() => prefetchProfile(match.user.username)}
                                             className="p-2 bg-primary/10 rounded-lg hover:bg-primary/20 transition-colors"
                                             title="View Profile"
                                         >
@@ -96,7 +113,11 @@ export default function Connections() {
                                     </div>
 
                                     <div className="flex items-start gap-4 mb-6">
-                                        <div className="w-16 h-16 rounded-full bg-primary/10 border border-border overflow-hidden flex-shrink-0">
+                                        <div
+                                            className="w-16 h-16 rounded-full bg-primary/10 border border-border overflow-hidden flex-shrink-0 cursor-pointer"
+                                            onMouseEnter={() => prefetchProfile(match.user.username)}
+                                            onClick={() => router.push(`/user/${match.user.username}`)}
+                                        >
                                             {match.user.avatar ? (
                                                 <img src={match.user.avatar} alt={match.user.username} className="w-full h-full object-cover" />
                                             ) : (
