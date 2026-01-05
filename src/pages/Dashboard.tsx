@@ -3,6 +3,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/ui/StatCard';
 import { ChecklistItem } from '@/components/ui/ChecklistItem';
 import { ActivityItem } from '@/components/ui/ActivityItem';
+import { SkeletonStatCard, SkeletonSection } from '@/components/ui/SkeletonCard';
+import { useLoading } from '@/hooks/useLoading';
 import { Mail, Users, BarChart3 } from 'lucide-react';
 
 const stats = [
@@ -26,6 +28,8 @@ const activities = [
 ];
 
 export default function Dashboard() {
+  const isLoading = useLoading(1200);
+
   return (
     <DashboardLayout>
       {/* Welcome */}
@@ -44,41 +48,57 @@ export default function Dashboard() {
         <div className="lg:col-span-2 space-y-6">
           {/* Stats */}
           <div className="grid sm:grid-cols-3 gap-4">
-            {stats.map((stat, i) => (
-              <StatCard key={stat.title} {...stat} index={i} />
-            ))}
+            {isLoading ? (
+              <>
+                <SkeletonStatCard />
+                <SkeletonStatCard />
+                <SkeletonStatCard />
+              </>
+            ) : (
+              stats.map((stat, i) => (
+                <StatCard key={stat.title} {...stat} index={i} />
+              ))
+            )}
           </div>
 
           {/* Getting Started */}
-          <motion.div 
-            className="card-base p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.3 }}
-          >
-            <h2 className="section-title">Get Started</h2>
-            <div className="space-y-2">
-              {checklist.map((item, i) => (
-                <ChecklistItem key={item.text} {...item} index={i} />
-              ))}
-            </div>
-          </motion.div>
+          {isLoading ? (
+            <SkeletonSection rows={4} />
+          ) : (
+            <motion.div 
+              className="card-base p-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.3 }}
+            >
+              <h2 className="section-title">Get Started</h2>
+              <div className="space-y-2">
+                {checklist.map((item, i) => (
+                  <ChecklistItem key={item.text} {...item} index={i} />
+                ))}
+              </div>
+            </motion.div>
+          )}
         </div>
 
         {/* Activity Feed */}
-        <motion.div 
-          className="card-base p-6"
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-        >
-          <h2 className="section-title">Recent Activity</h2>
-          <div className="space-y-1">
-            {activities.map((activity, i) => (
-              <ActivityItem key={i} {...activity} index={i} />
-            ))}
-          </div>
-        </motion.div>
+        {isLoading ? (
+          <SkeletonSection rows={5} />
+        ) : (
+          <motion.div 
+            className="card-base p-6"
+            initial={{ opacity: 0, x: 30 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.4, delay: 0.2 }}
+          >
+            <h2 className="section-title">Recent Activity</h2>
+            <div className="space-y-1">
+              {activities.map((activity, i) => (
+                <ActivityItem key={i} {...activity} index={i} />
+              ))}
+            </div>
+          </motion.div>
+        )}
       </div>
     </DashboardLayout>
   );
