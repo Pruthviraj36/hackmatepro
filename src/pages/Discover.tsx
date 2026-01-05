@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { UserCard } from '@/components/ui/UserCard';
+import { SkeletonUserCard } from '@/components/ui/SkeletonCard';
+import { useLoading } from '@/hooks/useLoading';
+import { useToast } from '@/hooks/use-toast';
 import { Filter, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
 
 const allSkills = ['React', 'Python', 'TypeScript', 'Node.js', 'Machine Learning', 'UI/UX', 'Rust', 'Go', 'Flutter', 'Docker'];
@@ -56,6 +59,8 @@ export default function Discover() {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(true);
+  const isLoading = useLoading(1000);
+  const { toast } = useToast();
 
   const toggleSkill = (skill: string) => {
     setSelectedSkills((prev) =>
@@ -65,6 +70,10 @@ export default function Discover() {
 
   const handleInvite = (username: string) => {
     setInvitedUsers((prev) => [...prev, username]);
+    toast({
+      title: "Invitation sent! 🎉",
+      description: `You've expressed interest in @${username}. They'll be notified.`,
+    });
   };
 
   return (
@@ -220,15 +229,24 @@ export default function Discover() {
             <span className="text-sm text-muted-foreground">{mockUsers.length} teammates found</span>
           </motion.div>
           <div className="grid md:grid-cols-2 gap-4">
-            {mockUsers.map((user, index) => (
-              <UserCard
-                key={user.username}
-                {...user}
-                invited={invitedUsers.includes(user.username)}
-                onInvite={() => handleInvite(user.username)}
-                index={index}
-              />
-            ))}
+            {isLoading ? (
+              <>
+                <SkeletonUserCard />
+                <SkeletonUserCard />
+                <SkeletonUserCard />
+                <SkeletonUserCard />
+              </>
+            ) : (
+              mockUsers.map((user, index) => (
+                <UserCard
+                  key={user.username}
+                  {...user}
+                  invited={invitedUsers.includes(user.username)}
+                  onInvite={() => handleInvite(user.username)}
+                  index={index}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
