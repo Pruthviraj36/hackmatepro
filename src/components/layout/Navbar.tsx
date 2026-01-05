@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, User, Settings, LogOut, Zap } from 'lucide-react';
+import { Menu, X, ChevronDown, User, Settings, LogOut, Zap, Sun, Moon } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 
 const navLinks = [
   { name: 'Dashboard', href: '/dashboard' },
@@ -15,6 +16,7 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
+  const { theme, toggleTheme } = useTheme();
 
   const isActive = (href: string) => location.pathname === href;
 
@@ -43,8 +45,19 @@ export function Navbar() {
             ))}
           </div>
 
-          {/* User Menu */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Theme Toggle & User Menu */}
+          <div className="hidden md:flex items-center gap-2">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg hover:bg-muted transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === 'light' ? (
+                <Moon className="w-5 h-5 text-muted-foreground" />
+              ) : (
+                <Sun className="w-5 h-5 text-muted-foreground" />
+              )}
+            </button>
             <div className="relative">
               <button
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
@@ -117,6 +130,13 @@ export function Navbar() {
               </Link>
             ))}
             <hr className="my-2 border-border" />
+            <button
+              onClick={toggleTheme}
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-lg text-foreground hover:bg-muted"
+            >
+              {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+              {theme === 'light' ? 'Dark mode' : 'Light mode'}
+            </button>
             <Link
               to="/login"
               onClick={() => setMobileMenuOpen(false)}
