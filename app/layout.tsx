@@ -7,6 +7,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { ThemeProvider } from '@/components/theme-provider';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 
+import { QueryProvider } from '@/components/providers/QueryProvider';
+
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
@@ -22,20 +24,22 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
-        <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <TooltipProvider>
-              {children}
-              <Toaster />
-              <Sonner />
-            </TooltipProvider>
-          </ThemeProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <TooltipProvider>
+                {children}
+                <Toaster />
+                <Sonner />
+              </TooltipProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

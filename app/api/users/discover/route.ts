@@ -11,15 +11,35 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const skip = parseInt(searchParams.get('skip') || '0');
 
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Fetch matched user IDs to exclude them
+    const matches = await prisma.match.findMany({
+      where: {
+        OR: [
+          { user1Id: userId },
+          { user2Id: userId },
+        ],
+      },
+      select: {
+        user1Id: true,
+        user2Id: true,
+      }
+    });
+
+    const matchedIds = matches.map(m => m.user1Id === userId ? m.user2Id : m.user1Id);
+
     const where: any = {
-      id: { not: userId || undefined },
+      id: { notIn: [userId, ...matchedIds] },
     };
 
-    if (skills.length > 0) {
+    if (skills.length > 0 && skills[0] !== '') {
       where.skills = { hasSome: skills };
     }
 
-    if (interests.length > 0) {
+    if (interests.length > 0 && interests[0] !== '') {
       where.interests = { hasSome: interests };
     }
 

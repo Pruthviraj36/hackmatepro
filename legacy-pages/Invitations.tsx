@@ -1,311 +1,240 @@
 "use client";
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { StatusBadge } from '@/components/ui/StatusBadge';
-import { SkillTag } from '@/components/ui/SkillTag';
-import { SkeletonUserCard } from '@/components/ui/SkeletonCard';
-import { useLoading } from '@/hooks/useLoading';
+import { Check, X, Clock, Send, Inbox, Loader2, User as UserIcon, MessageSquare } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
-import { User, Mail, Linkedin, Github, X, Check } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
-const sentInvitations = [
-  {
-    username: 'ml_wizard',
-    bio: 'AI/ML engineer focusing on computer vision',
-    skills: ['Python', 'TensorFlow'],
-    status: 'pending' as const,
-    createdAt: '2 days ago',
-    expiresIn: '5 days',
-  },
-  {
-    username: 'design_master',
-    bio: 'Product designer with a love for clean interfaces',
-    skills: ['UI/UX', 'Figma'],
-    status: 'accepted' as const,
-    createdAt: '5 days ago',
-    expiresIn: null,
-  },
-  {
-    username: 'blockchain_bob',
-    bio: 'Web3 developer exploring DeFi',
-    skills: ['Solidity', 'Ethereum'],
-    status: 'rejected' as const,
-    createdAt: '1 week ago',
-    expiresIn: null,
-  },
-];
+interface User {
+  id: string;
+  username: string;
+  name: string | null;
+  avatar: string | null;
+}
 
-const receivedInvitations = [
-  {
-    username: 'frontend_girl',
-    bio: 'React enthusiast building beautiful UIs',
-    skills: ['React', 'CSS', 'TypeScript'],
-    message: 'Hey! Love your work on the DeFi Dashboard. Would love to team up for ETHGlobal!',
-    createdAt: '1 day ago',
-  },
-  {
-    username: 'rust_master',
-    bio: 'Systems programmer with a love for performance',
-    skills: ['Rust', 'WebAssembly', 'Go'],
-    message: 'Interested in building something together at TreeHacks?',
-    createdAt: '3 days ago',
-  },
-];
-
-const matches = [
-  {
-    username: 'design_master',
-    bio: 'Product designer with a love for clean interfaces',
-    skills: ['UI/UX', 'Figma', 'React'],
-    hackathons: 6,
-    wins: 1,
-    email: 'design_master@example.com',
-    linkedin: 'linkedin.com/in/designmaster',
-    github: 'github.com/designmaster',
-  },
-  {
-    username: 'sarah_coder',
-    bio: 'Full-stack developer passionate about scalable apps',
-    skills: ['React', 'Node.js', 'PostgreSQL'],
-    hackathons: 8,
-    wins: 2,
-    email: 'sarah@example.com',
-    linkedin: 'linkedin.com/in/sarahcoder',
-    github: 'github.com/sarahcoder',
-  },
-];
+interface Invitation {
+  id: string;
+  senderId: string;
+  receiverId: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  message: string | null;
+  createdAt: string;
+  sender: User;
+  receiver: User;
+}
 
 export default function Invitations() {
-  const [activeTab, setActiveTab] = useState<'sent' | 'received' | 'matches'>('received');
-  const [receivedList, setReceivedList] = useState(receivedInvitations);
-  const isLoading = useLoading(1000);
+  const { token, user: authUser } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
-  const handleAccept = (username: string) => {
-    setReceivedList((prev) => prev.filter((i) => i.username !== username));
-    toast({
-      title: "Invitation accepted! 🎉",
-      description: `You and @${username} are now matched. Check the Matches tab to see their contact info.`,
-    });
+  const [invitations, setInvitations] = useState<Invitation[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+
+  const [activeTab, setActiveTab] = useState<'received' | 'sent'>('received');
+
+  const fetchInvitations = async () => {
+    if (!token) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch('/api/invitations', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setInvitations(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch invitations', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleReject = (username: string) => {
-    setReceivedList((prev) => prev.filter((i) => i.username !== username));
-    toast({
-      title: "Invitation declined",
-      description: `You've declined the invitation from @${username}.`,
-      variant: "destructive",
-    });
+  useEffect(() => {
+    fetchInvitations();
+  }, [token]);
+
+  const handleStatusUpdate = async (id: string, status: 'ACCEPTED' | 'REJECTED') => {
+    if (!token) return;
+    setProcessingId(id);
+    try {
+      const response = await fetch(`/api/invitations/${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ status }),
+      });
+
+      if (response.ok) {
+        toast({
+          title: status === 'ACCEPTED' ? 'Invitation Accepted' : 'Invitation Rejected',
+          description: status === 'ACCEPTED' ? "You've successfully matched with a teammate!" : "Invitation declined."
+        });
+        // Update local state instead of refetching everything
+        setInvitations(prev => prev.map(inv => inv.id === id ? { ...inv, status } : inv));
+      } else {
+        const data = await response.json();
+        toast({ title: 'Error', description: data.error || 'Failed to update invitation', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Something went wrong', variant: 'destructive' });
+    } finally {
+      setProcessingId(null);
+    }
   };
+
+  const receivedInvitations = invitations.filter(inv => inv.receiverId === authUser?.id);
+  const sentInvitations = invitations.filter(inv => inv.senderId === authUser?.id);
+
+  const displayedInvitations = activeTab === 'received' ? receivedInvitations : sentInvitations;
 
   return (
     <DashboardLayout>
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-foreground mb-6">Invitations & Matches</h1>
+      <div className="max-w-4xl mx-auto space-y-6">
+        <header>
+          <h1 className="text-3xl font-bold text-foreground">Invitations</h1>
+          <p className="text-muted-foreground mt-2">Manage your connections and teammate requests.</p>
+        </header>
 
         {/* Tabs */}
-        <div className="flex gap-1 p-1 bg-muted rounded-lg mb-6 w-fit">
-          {[
-            { key: 'received', label: 'Received', count: receivedInvitations.length },
-            { key: 'sent', label: 'Sent', count: sentInvitations.length },
-            { key: 'matches', label: 'Matches', count: matches.length },
-          ].map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as typeof activeTab)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-card text-foreground shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
+        <div className="flex bg-muted p-1 rounded-xl w-fit">
+          <button
+            onClick={() => setActiveTab('received')}
+            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'received' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
               }`}
-            >
-              {tab.label} ({tab.count})
-            </button>
-          ))}
+          >
+            <Inbox className="w-4 h-4" />
+            Received
+            {receivedInvitations.filter(i => i.status === 'PENDING').length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-primary" />
+            )}
+          </button>
+          <button
+            onClick={() => setActiveTab('sent')}
+            className={`px-6 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${activeTab === 'sent' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+              }`}
+          >
+            <Send className="w-4 h-4" />
+            Sent
+          </button>
         </div>
 
-        {/* Sent Tab */}
-        {activeTab === 'sent' && (
-          <div className="space-y-4">
-            {isLoading ? (
-              <>
-                <SkeletonUserCard />
-                <SkeletonUserCard />
-              </>
-            ) : (
-              sentInvitations.map((invitation, i) => (
-                <motion.div 
-                  key={invitation.username} 
-                  className="card-base p-5"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-foreground">@{invitation.username}</span>
-                        <StatusBadge status={invitation.status} />
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{invitation.bio}</p>
-                      <div className="flex flex-wrap gap-1.5 mb-2">
-                        {invitation.skills.map((skill) => (
-                          <SkillTag key={skill} name={skill} />
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        Sent {invitation.createdAt}
-                        {invitation.expiresIn && ` • Expires in ${invitation.expiresIn}`}
-                      </p>
-                    </div>
-                    {invitation.status === 'pending' && (
-                      <button className="btn-ghost text-sm text-destructive">Cancel</button>
-                    )}
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Received Tab */}
-        {activeTab === 'received' && (
-          <div className="space-y-4">
-            {isLoading ? (
-              <>
-                <SkeletonUserCard />
-                <SkeletonUserCard />
-              </>
-            ) : receivedList.length === 0 ? (
-              <div className="card-base p-8 text-center">
-                <p className="text-muted-foreground">No pending invitations</p>
-              </div>
-            ) : (
-              receivedList.map((invitation, i) => (
-                <motion.div 
-                  key={invitation.username} 
-                  className="card-base p-5"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
+        {/* List */}
+        <div className="space-y-4">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+            </div>
+          ) : displayedInvitations.length > 0 ? (
+            <AnimatePresence mode="popLayout">
+              {displayedInvitations.map((inv, i) => (
+                <motion.div
+                  key={inv.id}
                   layout
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="card-base p-6"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-foreground">@{invitation.username}</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-2">{invitation.bio}</p>
-                      <div className="flex flex-wrap gap-1.5 mb-3">
-                        {invitation.skills.map((skill) => (
-                          <SkillTag key={skill} name={skill} />
-                        ))}
-                      </div>
-                      <div className="p-3 bg-muted/50 rounded-lg mb-3">
-                        <p className="text-sm text-foreground italic">"{invitation.message}"</p>
-                      </div>
-                      <p className="text-xs text-muted-foreground">Received {invitation.createdAt}</p>
-                    </div>
-                    <div className="flex gap-2">
-                      <motion.button 
-                        className="btn-secondary p-2" 
-                        title="Reject"
-                        onClick={() => handleReject(invitation.username)}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex gap-4">
+                      <div
+                        className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden cursor-pointer"
+                        onClick={() => router.push(`/user/${activeTab === 'received' ? inv.sender.username : inv.receiver.username}`)}
                       >
-                        <X className="w-5 h-5" />
-                      </motion.button>
-                      <motion.button 
-                        className="btn-primary p-2" 
-                        title="Accept"
-                        onClick={() => handleAccept(invitation.username)}
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <Check className="w-5 h-5" />
-                      </motion.button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))
-            )}
-          </div>
-        )}
-
-        {/* Matches Tab */}
-        {activeTab === 'matches' && (
-          <div className="space-y-4">
-            {isLoading ? (
-              <>
-                <SkeletonUserCard />
-                <SkeletonUserCard />
-              </>
-            ) : (
-              matches.map((match, i) => (
-                <motion.div 
-                  key={match.username} 
-                  className="card-base p-5"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="w-6 h-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-semibold text-foreground">@{match.username}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {match.hackathons} hackathons • {match.wins} wins
-                        </span>
+                        {(activeTab === 'received' ? inv.sender.avatar : inv.receiver.avatar) ? (
+                          <img
+                            src={activeTab === 'received' ? inv.sender.avatar! : inv.receiver.avatar!}
+                            alt="Avatar"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <UserIcon className="w-6 h-6 text-primary" />
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">{match.bio}</p>
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {match.skills.map((skill) => (
-                          <SkillTag key={skill} name={skill} />
-                        ))}
-                      </div>
-                      {/* Contact Details */}
-                      <div className="p-4 bg-accent/50 rounded-lg">
-                        <h4 className="text-sm font-medium text-foreground mb-2">Contact Details</h4>
-                        <div className="flex flex-wrap gap-4">
-                          <a href={`mailto:${match.email}`} className="flex items-center gap-1.5 text-sm text-foreground hover:text-primary">
-                            <Mail className="w-4 h-4" />
-                            {match.email}
-                          </a>
-                          <a href={`https://${match.linkedin}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-foreground hover:text-primary">
-                            <Linkedin className="w-4 h-4" />
-                            LinkedIn
-                          </a>
-                          <a href={`https://${match.github}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-foreground hover:text-primary">
-                            <Github className="w-4 h-4" />
-                            GitHub
-                          </a>
+                      <div>
+                        <h3 className="font-bold text-foreground">
+                          @{activeTab === 'received' ? inv.sender.username : inv.receiver.username}
+                        </h3>
+                        {(activeTab === 'received' ? inv.sender.name : inv.receiver.name) && (
+                          <p className="text-sm text-muted-foreground">
+                            {activeTab === 'received' ? inv.sender.name : inv.receiver.name}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-2 mt-1">
+                          <Clock className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(inv.createdAt).toLocaleDateString()}
+                          </span>
+                          <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${inv.status === 'PENDING' ? 'bg-amber-500/10 text-amber-500' :
+                            inv.status === 'ACCEPTED' ? 'bg-emerald-500/10 text-emerald-500' :
+                              'bg-destructive/10 text-destructive'
+                            }`}>
+                            {inv.status}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    <Link href={`/user/${match.username}`} className="btn-secondary text-sm">
-                      View profile
-                    </Link>
+
+                    {activeTab === 'received' && inv.status === 'PENDING' && (
+                      <div className="flex gap-2 w-full sm:w-auto">
+                        <button
+                          onClick={() => handleStatusUpdate(inv.id, 'ACCEPTED')}
+                          disabled={!!processingId}
+                          className="btn-primary flex-1 sm:flex-initial py-2 px-4 shadow-primary/20 shadow-lg"
+                        >
+                          {processingId === inv.id ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : 'Accept'}
+                        </button>
+                        <button
+                          onClick={() => handleStatusUpdate(inv.id, 'REJECTED')}
+                          disabled={!!processingId}
+                          className="btn-secondary flex-1 sm:flex-initial py-2 px-4"
+                        >
+                          Decline
+                        </button>
+                      </div>
+                    )}
                   </div>
+
+                  {inv.message && (
+                    <div className="mt-4 p-3 bg-muted rounded-lg flex gap-3">
+                      <MessageSquare className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                      <p className="text-sm text-foreground italic">"{inv.message}"</p>
+                    </div>
+                  )}
                 </motion.div>
-              ))
-            )}
-          </div>
-        )}
+              ))}
+            </AnimatePresence>
+          ) : (
+            <div className="card-base py-20 text-center">
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                {activeTab === 'received' ? <Inbox className="w-8 h-8 text-muted-foreground" /> : <Send className="w-8 h-8 text-muted-foreground" />}
+              </div>
+              <h3 className="text-xl font-bold text-foreground">No {activeTab} invitations</h3>
+              <p className="text-muted-foreground mt-2">
+                {activeTab === 'received'
+                  ? "You haven't received any teammate requests yet."
+                  : "Go to the Discovery page to find and invite potential teammates!"}
+              </p>
+              {activeTab === 'sent' && (
+                <button
+                  onClick={() => router.push('/discover')}
+                  className="mt-6 btn-primary px-8"
+                >
+                  Discover teammates
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
 }
-

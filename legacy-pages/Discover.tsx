@@ -2,257 +2,219 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { UserCard } from '@/components/ui/UserCard';
-import { SkeletonUserCard } from '@/components/ui/SkeletonCard';
-import { useLoading } from '@/hooks/useLoading';
+import { SkillTag } from '@/components/ui/SkillTag';
+import { SkillPicker } from '@/components/ui/SkillPicker';
+import { Filter, UserPlus, Loader2, User as UserIcon } from 'lucide-react';
+import { useAuth } from '@/components/providers/AuthProvider';
 import { useToast } from '@/hooks/use-toast';
-import { Filter, RotateCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-const allSkills = ['React', 'Python', 'TypeScript', 'Node.js', 'Machine Learning', 'UI/UX', 'Rust', 'Go', 'Flutter', 'Docker'];
-const hackathons = ['ETHGlobal 2025', 'TreeHacks 2025', 'HackMIT 2025', 'CalHacks 2025'];
-
-const mockUsers = [
-  {
-    username: 'sarah_coder',
-    bio: 'Full-stack developer passionate about building scalable web applications. Love React and Node.js!',
-    skills: ['React', 'Node.js', 'TypeScript', 'PostgreSQL', 'AWS', 'Docker'],
-    hackathons: 8,
-    wins: 2,
-  },
-  {
-    username: 'ml_wizard',
-    bio: 'AI/ML engineer focusing on computer vision and NLP. Always looking for interesting projects.',
-    skills: ['Python', 'TensorFlow', 'PyTorch', 'Computer Vision', 'NLP'],
-    hackathons: 12,
-    wins: 4,
-  },
-  {
-    username: 'design_master',
-    bio: 'Product designer with a love for clean, intuitive interfaces. Figma enthusiast.',
-    skills: ['UI/UX', 'Figma', 'React', 'CSS', 'Prototyping'],
-    hackathons: 6,
-    wins: 1,
-  },
-  {
-    username: 'blockchain_bob',
-    bio: 'Web3 developer exploring DeFi and smart contracts. Solidity is my second language.',
-    skills: ['Solidity', 'Ethereum', 'React', 'TypeScript', 'Hardhat', 'IPFS'],
-    hackathons: 15,
-    wins: 5,
-  },
-  {
-    username: 'mobile_mary',
-    bio: 'Cross-platform mobile developer. Flutter and React Native are my tools of choice.',
-    skills: ['Flutter', 'React Native', 'Dart', 'Firebase', 'iOS', 'Android'],
-    hackathons: 4,
-    wins: 0,
-  },
-  {
-    username: 'devops_dan',
-    bio: 'Infrastructure engineer who loves automation. CI/CD pipelines are my jam.',
-    skills: ['Docker', 'Kubernetes', 'AWS', 'Terraform', 'GitHub Actions', 'Linux'],
-    hackathons: 7,
-    wins: 2,
-  },
-];
+interface User {
+  id: string;
+  username: string;
+  name: string | null;
+  bio: string | null;
+  avatar: string | null;
+  skills: string[];
+  interests: string[];
+  _count: {
+    hackathonHistory: number;
+  };
+}
 
 export default function Discover() {
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
-  const [invitedUsers, setInvitedUsers] = useState<string[]>([]);
-  const [filtersOpen, setFiltersOpen] = useState(true);
-  const isLoading = useLoading(1000);
+  const { token } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
-  const toggleSkill = (skill: string) => {
-    setSelectedSkills((prev) =>
-      prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill]
-    );
+  const [isSending, setIsSending] = useState<string | null>(null);
+  const [selectedSkills, setSelectedSkills] = useState<{ name: string, proficiency: any }[]>([]);
+
+  const fetcher = async (url: string) => {
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) throw new Error('Failed to fetch');
+    return res.json();
   };
 
-  const handleInvite = (username: string) => {
-    setInvitedUsers((prev) => [...prev, username]);
-    toast({
-      title: "Invitation sent! 🎉",
-      description: `You've expressed interest in @${username}. They'll be notified.`,
-    });
+  const skillNames = selectedSkills.map(s => s.name).join(',');
+
+  const { data: users, isLoading: isQueryLoading } = useQuery<User[]>({
+    queryKey: ['discover', skillNames],
+    queryFn: () => fetcher(`/api/users/discover?skills=${skillNames}`),
+    enabled: !!token,
+    staleTime: 1000 * 60 * 2, // 2 minutes cache for discovery
+  });
+
+  const isLoading = isQueryLoading && !users;
+
+  const sendInvitation = async (receiverId: string) => {
+    if (!token) return;
+    setIsSending(receiverId);
+    try {
+      const response = await fetch('/api/invitations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          receiverId,
+          message: 'Hey! I saw your profile and would love to team up for a hackathon.'
+        }),
+      });
+
+      if (response.ok) {
+        toast({ title: 'Invitation Sent', description: 'Your invitation has been sent successfully.' });
+      } else {
+        const data = await response.json();
+        toast({ title: 'Error', description: data.error || 'Failed to send invitation', variant: 'destructive' });
+      }
+    } catch (error) {
+      toast({ title: 'Error', description: 'Something went wrong', variant: 'destructive' });
+    } finally {
+      setIsSending(null);
+    }
   };
 
   return (
     <DashboardLayout>
-      <motion.div 
-        className="mb-6"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <h1 className="text-3xl font-bold text-foreground mb-2">Discover Teammates</h1>
-        <p className="text-muted-foreground">Find the perfect match for your next hackathon</p>
-      </motion.div>
+      <div className="max-w-6xl mx-auto space-y-8">
+        <header>
+          <h1 className="text-3xl font-bold text-foreground">Discover Teammates</h1>
+          <p className="text-muted-foreground mt-2">Find the perfect partners for your next hackathon project.</p>
+        </header>
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Filters Sidebar */}
-        <motion.div 
-          className="lg:w-72 flex-shrink-0"
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: 0.1 }}
-        >
-          <div className="card-base p-5 lg:sticky lg:top-24">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Filter className="w-5 h-5 text-primary" />
-                <h2 className="font-semibold text-foreground">Filters</h2>
-              </div>
-              <button
-                onClick={() => setFiltersOpen(!filtersOpen)}
-                className="lg:hidden p-1 hover:bg-muted rounded"
-              >
-                {filtersOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-              </button>
-            </div>
-
+        {/* Filters and Search */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
+            <SkillPicker
+              selectedSkills={selectedSkills}
+              onAddSkill={(name) => setSelectedSkills([...selectedSkills, { name, proficiency: 'Intermediate' }])}
+              onRemoveSkill={(name) => setSelectedSkills(selectedSkills.filter(s => s.name !== name))}
+            />
+          </div>
+          <div className="flex flex-wrap gap-2">
             <AnimatePresence>
-              {filtersOpen && (
-                <motion.div 
-                  className="space-y-5"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
+              {selectedSkills.map(skill => (
+                <motion.div
+                  key={skill.name}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
                 >
-                  {/* Skills */}
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Skills</label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {allSkills.map((skill) => (
-                        <motion.button
-                          key={skill}
-                          onClick={() => toggleSkill(skill)}
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                            selectedSkills.includes(skill)
-                              ? 'bg-primary text-primary-foreground'
-                              : 'bg-muted text-muted-foreground hover:bg-muted/80'
-                          }`}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          {skill}
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Hackathon */}
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Hackathon</label>
-                    <select className="input-base text-sm">
-                      <option value="">All hackathons</option>
-                      {hackathons.map((h) => (
-                        <option key={h} value={h}>{h}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Experience Level */}
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Experience Level</label>
-                    <div className="flex gap-1">
-                      {['Beginner', 'Intermediate', 'Advanced'].map((level) => (
-                        <motion.button
-                          key={level}
-                          className="flex-1 px-2 py-1.5 text-xs font-medium rounded-lg bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                          whileHover={{ scale: 1.02 }}
-                          whileTap={{ scale: 0.98 }}
-                        >
-                          {level}
-                        </motion.button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Location */}
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Location / Timezone</label>
-                    <input type="text" className="input-base text-sm" placeholder="e.g. PST, New York" />
-                  </div>
-
-                  {/* Availability */}
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-foreground">Looking for teammates</label>
-                    <button className="w-10 h-6 bg-primary rounded-full relative">
-                      <span className="absolute right-1 top-1 w-4 h-4 bg-primary-foreground rounded-full" />
-                    </button>
-                  </div>
-
-                  {/* Sort */}
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Sort by</label>
-                    <select className="input-base text-sm">
-                      <option>Best skill match</option>
-                      <option>Recently joined</option>
-                      <option>Most experience</option>
-                      <option>Highest achievements</option>
-                    </select>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 pt-2">
-                    <motion.button 
-                      className="btn-primary flex-1 text-sm py-2"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      Apply
-                    </motion.button>
-                    <motion.button 
-                      className="btn-secondary flex-1 text-sm py-2 flex items-center justify-center gap-1"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Reset
-                    </motion.button>
-                  </div>
+                  <SkillTag
+                    name={skill.name}
+                    proficiency="Intermediate"
+                    removable
+                    onRemove={() => setSelectedSkills(selectedSkills.filter(s => s.name !== skill.name))}
+                  />
                 </motion.div>
-              )}
+              ))}
             </AnimatePresence>
           </div>
-        </motion.div>
-
-        {/* Results Grid */}
-        <div className="flex-1">
-          <motion.div 
-            className="flex items-center justify-between mb-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <span className="text-sm text-muted-foreground">{mockUsers.length} teammates found</span>
-          </motion.div>
-          <div className="grid md:grid-cols-2 gap-4">
-            {isLoading ? (
-              <>
-                <SkeletonUserCard />
-                <SkeletonUserCard />
-                <SkeletonUserCard />
-                <SkeletonUserCard />
-              </>
-            ) : (
-              mockUsers.map((user, index) => (
-                <UserCard
-                  key={user.username}
-                  {...user}
-                  invited={invitedUsers.includes(user.username)}
-                  onInvite={() => handleInvite(user.username)}
-                  index={index}
-                />
-              ))
-            )}
-          </div>
         </div>
+
+        {/* Results */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          </div>
+        ) : users && users.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence>
+              {users.map((user, i) => (
+                <motion.div
+                  key={user.id}
+                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="card-base flex flex-col"
+                >
+                  <div className="p-6 flex-1">
+                    <div className="flex gap-4 mb-4">
+                      <div
+                        className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden cursor-pointer"
+                        onClick={() => router.push(`/user/${user.username}`)}
+                      >
+                        {user.avatar ? (
+                          <img src={user.avatar} alt={user.username} className="w-full h-full object-cover" />
+                        ) : (
+                          <UserIcon className="w-8 h-8 text-primary" />
+                        )}
+                      </div>
+                      <div>
+                        <h3
+                          className="font-bold text-lg text-foreground hover:text-primary transition-colors cursor-pointer"
+                          onClick={() => router.push(`/user/${user.username}`)}
+                        >
+                          @{user.username}
+                        </h3>
+                        {user.name && <p className="text-sm text-muted-foreground">{user.name}</p>}
+                        <p className="text-xs text-primary font-medium mt-1">
+                          {user._count.hackathonHistory} Hackathons
+                        </p>
+                      </div>
+                    </div>
+
+                    <p className="text-sm text-muted-foreground line-clamp-3 mb-6">
+                      {user.bio || 'No bio provided yet.'}
+                    </p>
+
+                    <div className="flex flex-wrap gap-1.5 mb-2">
+                      {user.skills.slice(0, 4).map(skill => (
+                        <SkillTag key={skill} name={skill} />
+                      ))}
+                      {user.skills.length > 4 && (
+                        <span className="text-xs text-muted-foreground py-1 px-2">+{user.skills.length - 4} more</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-4 border-t border-border flex gap-2">
+                    <button
+                      className="btn-primary flex-1 py-2 text-sm flex items-center justify-center gap-2"
+                      onClick={() => sendInvitation(user.id)}
+                      disabled={isSending === user.id}
+                    >
+                      {isSending === user.id ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <UserPlus className="w-4 h-4" />
+                      )}
+                      Invite
+                    </button>
+                    <button
+                      className="btn-secondary flex-1 py-2 text-sm flex items-center justify-center gap-2"
+                      onClick={() => router.push(`/user/${user.username}`)}
+                    >
+                      Profile
+                    </button>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        ) : (
+          <div className="text-center py-20 card-base">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <Filter className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground">No teammates found</h3>
+            <p className="text-muted-foreground max-w-sm mx-auto mt-2">
+              Try adjusting your filters or search terms to find more potential teammates.
+            </p>
+            <button
+              className="mt-6 text-primary hover:underline font-medium"
+              onClick={() => setSelectedSkills([])}
+            >
+              Clear all filters
+            </button>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
 }
-

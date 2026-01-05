@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    
+
     // Validate input
     const validationResult = signupSchema.safeParse(body);
     if (!validationResult.success) {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, username, password, name } = validationResult.data;
+    const { email, username, password, name, bio } = validationResult.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findFirst({
@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         username,
         password: hashedPassword,
         name: name || null,
+        bio: bio || null,
         verificationToken,
         verificationTokenExpiry,
       },

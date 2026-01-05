@@ -29,7 +29,12 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(hackathons, { status: 200 });
+    return NextResponse.json(hackathons, {
+      status: 200,
+      headers: {
+        'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1200'
+      }
+    });
   } catch (error) {
     console.error('Get hackathons error:', error);
     return NextResponse.json(
@@ -48,7 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    
+
     // Validate input
     const validationResult = createHackathonSchema.safeParse(body);
     if (!validationResult.success) {

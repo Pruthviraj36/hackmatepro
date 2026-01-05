@@ -9,6 +9,8 @@ import { AuthLayout } from '@/components/layout/AuthLayout';
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,7 +35,7 @@ export default function SignUp() {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, username, password }),
+        body: JSON.stringify({ email, username, password, name, bio }),
       });
 
       const data = await response.json();
@@ -64,71 +66,104 @@ export default function SignUp() {
       subtitle="Join HackMate and find your perfect hackathon teammates"
     >
       <form className="space-y-4" onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            className="input-base"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={isSubmitting}
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
+              Email
+            </label>
+            <input
+              type="email"
+              id="email"
+              className="input-base"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium text-foreground mb-1.5">
+              Username
+            </label>
+            <input
+              type="text"
+              id="username"
+              className="input-base"
+              placeholder="alexdev"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
 
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-foreground mb-1.5">
-            Username
+          <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1.5">
+            Full Name (Display Name)
           </label>
           <input
             type="text"
-            id="username"
+            id="name"
             className="input-base"
-            placeholder="alexdev"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
+            placeholder="Alex Designer"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             disabled={isSubmitting}
           />
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
-            Password
+          <label htmlFor="bio" className="block text-sm font-medium text-foreground mb-1.5">
+            Brief Bio
           </label>
-          <input
-            type="password"
-            id="password"
-            className="input-base"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
+          <textarea
+            id="bio"
+            className="input-base min-h-[80px] py-2"
+            placeholder="Tell us about yourself..."
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
             disabled={isSubmitting}
           />
         </div>
 
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1.5">
-            Confirm Password
-          </label>
-          <input
-            type="password"
-            id="confirmPassword"
-            className="input-base"
-            placeholder="••••••••"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            disabled={isSubmitting}
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
+              Password
+            </label>
+            <input
+              type="password"
+              id="password"
+              className="input-base"
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1.5">
+              Confirm Password
+            </label>
+            <input
+              type="password"
+              id="confirmPassword"
+              className="input-base"
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              disabled={isSubmitting}
+            />
+          </div>
         </div>
 
-        <div className="flex items-start gap-2">
+        <div className="flex items-start gap-2 pt-2">
           <input
             type="checkbox"
             id="terms"
@@ -149,7 +184,7 @@ export default function SignUp() {
 
         <button
           type="submit"
-          className="btn-primary w-full disabled:opacity-50"
+          className="btn-primary w-full py-3 mt-2 disabled:opacity-50"
           disabled={isSubmitting}
         >
           {isSubmitting ? 'Creating account...' : 'Create account'}
@@ -165,4 +200,3 @@ export default function SignUp() {
     </AuthLayout>
   );
 }
-

@@ -3,17 +3,19 @@ import { verify } from 'jsonwebtoken';
 import crypto from 'crypto';
 import nodemailer from 'nodemailer';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+import { env } from './env';
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false, // true for 465, false for other ports
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+const transOptions = {
+  host: env.SMTP_HOST || 'smtp.gmail.com',
+  port: env.SMTP_PORT || 587,
+  secure: env.SMTP_PORT === 465,
+  auth: env.SMTP_USER && env.SMTP_PASS ? {
+    user: env.SMTP_USER,
+    pass: env.SMTP_PASS,
+  } : undefined,
+};
+
+const transporter = nodemailer.createTransport(transOptions);
 
 export async function verifyToken(request: NextRequest): Promise<string | null> {
   try {
@@ -24,7 +26,7 @@ export async function verifyToken(request: NextRequest): Promise<string | null> 
     }
 
     const token = authHeader.substring(7);
-    const decoded = verify(token, JWT_SECRET) as { userId: string };
+    const decoded = verify(token, env.JWT_SECRET) as { userId: string };
 
     return decoded.userId;
   } catch (error) {
@@ -38,7 +40,7 @@ export function generateSecureToken(): string {
 
 export async function sendEmail(to: string, subject: string, html: string) {
   await transporter.sendMail({
-    from: process.env.FROM_EMAIL || 'noreply@hackmate.com',
+    from: env.FROM_EMAIL || 'noreply@hackmate.com',
     to,
     subject,
     html,

@@ -19,7 +19,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. Handle API routes (existing logic)
+  // 2. Handle API routes
   if (pathname.startsWith('/api')) {
     // Skip authentication for auth endpoints
     if (pathname.startsWith('/api/auth')) {
@@ -34,24 +34,20 @@ export function middleware(request: NextRequest) {
   }
 
   // 3. Handle Frontend Routing
-
-  // Use a hacky way to check for token in cookies (middleware can't see localStorage)
-  // We'll trust the client side for now, but for real middleware we need cookies
   const token = request.cookies.get('hackmate_session_active');
-
-  // Skip middleware for root path
-  if (pathname === '/') {
-    return NextResponse.next();
-  }
 
   const isProtected = protectedRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`));
   const isAuthOnly = authOnlyRoutes.some(route => pathname === route || pathname.startsWith(`${route}/`));
 
+  // Redirect to login if accessing protected route without token
   if (isProtected && !token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const url = new URL('/login', request.url);
+    url.searchParams.set('callbackUrl', pathname);
+    return NextResponse.redirect(url);
   }
 
-  if (isAuthOnly && token) {
+  // Redirect to dashboard if accessing auth-only routes (login/signup) or landing page while logged in
+  if ((isAuthOnly || pathname === '/') && token) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
