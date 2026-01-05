@@ -1,73 +1,119 @@
-# Welcome to your Lovable project
+# HackMate - Hackathon Teammate Matching Platform
 
-## Project info
+A Next.js application for finding hackathon teammates with privacy-first matching.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Features
 
-## How can I edit this code?
+- 🔐 User authentication and profiles
+- 👥 Discover and match with teammates
+- 🎯 Skill-based filtering
+- 🏆 Hackathon history tracking
+- 📧 Invitation system
+- 💼 Project showcase
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **Backend**: Next.js API Routes
+- **Database**: PostgreSQL with Prisma ORM
+- **Authentication**: JWT tokens
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+- Node.js 18+ 
+- PostgreSQL database
+- npm or yarn
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Install dependencies:
+```bash
+npm install
+```
 
-Follow these steps:
+2. Set up environment variables:
+```bash
+cp .env.example .env
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Edit `.env` and add your database URL:
+```
+DATABASE_URL="postgresql://user:password@localhost:5432/hackmate?schema=public"
+JWT_SECRET="your-secret-key-change-in-production"
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+3. Generate Prisma client:
+```bash
+npm run db:generate
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+4. Push database schema:
+```bash
+npm run db:push
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+5. Run the development server:
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Database Commands
 
-**Use GitHub Codespaces**
+- `npm run db:generate` - Generate Prisma Client
+- `npm run db:push` - Push schema changes to database
+- `npm run db:migrate` - Create and run migrations
+- `npm run db:studio` - Open Prisma Studio
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## API Routes
 
-## What technologies are used for this project?
+### Authentication
+- `POST /api/auth/signup` - Create new user
+- `POST /api/auth/login` - Login user
 
-This project is built with:
+### Users
+- `GET /api/users/me` - Get current user profile
+- `PUT /api/users/me` - Update current user profile
+- `GET /api/users/[username]` - Get user by username
+- `GET /api/users/discover` - Discover users
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Invitations
+- `GET /api/invitations` - Get all invitations
+- `POST /api/invitations` - Create invitation
+- `PATCH /api/invitations/[id]` - Accept/reject invitation
 
-## How can I deploy this project?
+### Matches
+- `GET /api/matches` - Get all matches
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+### Hackathons
+- `GET /api/hackathons` - Get all hackathons
+- `POST /api/hackathons` - Create hackathon
+- `GET /api/hackathons/history` - Get hackathon history
+- `POST /api/hackathons/history` - Add hackathon history
 
-## Can I connect a custom domain to my Lovable project?
+### Projects
+- `GET /api/projects` - Get projects
+- `POST /api/projects` - Create project
+- `PUT /api/projects/[id]` - Update project
+- `DELETE /api/projects/[id]` - Delete project
 
-Yes, you can!
+## Project Structure
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```
+├── app/                    # Next.js app directory
+│   ├── api/               # API routes
+│   ├── (pages)/           # Page routes
+│   ├── layout.tsx         # Root layout
+│   └── globals.css        # Global styles
+├── components/            # React components
+├── lib/                   # Utilities and Prisma client
+├── prisma/                # Prisma schema
+└── src/                   # Source files (pages, components)
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## License
+
+MIT

@@ -1,0 +1,305 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+
+@layer base {
+  :root {
+    --background: 210 20% 98%;
+    --foreground: 220 20% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 10%;
+
+    --primary: 173 80% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 220 20% 20%;
+
+    --muted: 210 15% 94%;
+    --muted-foreground: 220 10% 45%;
+
+    --accent: 173 60% 95%;
+    --accent-foreground: 173 80% 30%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    --border: 214 20% 90%;
+    --input: 214 20% 90%;
+    --ring: 173 80% 40%;
+
+    --radius: 0.75rem;
+
+    /* Custom HackMate tokens */
+    --tag-skill: 199 89% 48%;
+    --tag-skill-bg: 199 89% 95%;
+    --tag-interest: 262 83% 58%;
+    --tag-interest-bg: 262 83% 95%;
+    --tag-hackathon: 25 95% 53%;
+    --tag-hackathon-bg: 25 95% 95%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 220 20% 10%;
+    --sidebar-primary: 173 80% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 173 60% 95%;
+    --sidebar-accent-foreground: 173 80% 30%;
+    --sidebar-border: 214 20% 90%;
+    --sidebar-ring: 173 80% 40%;
+  }
+
+  .dark {
+    --background: 220 20% 8%;
+    --foreground: 210 20% 98%;
+
+    --card: 220 20% 12%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 220 20% 12%;
+    --popover-foreground: 210 20% 98%;
+
+    --primary: 173 80% 45%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 210 20% 90%;
+
+    --muted: 220 15% 20%;
+    --muted-foreground: 215 15% 60%;
+
+    --accent: 173 60% 20%;
+    --accent-foreground: 173 60% 80%;
+
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 20%;
+    --input: 220 15% 20%;
+    --ring: 173 80% 45%;
+
+    --sidebar-background: 220 20% 10%;
+    --sidebar-foreground: 210 20% 98%;
+    --sidebar-primary: 173 80% 45%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 173 60% 20%;
+    --sidebar-accent-foreground: 173 60% 80%;
+    --sidebar-border: 220 15% 20%;
+    --sidebar-ring: 173 80% 45%;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    @apply antialiased;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .card-base,
+  .bg-card,
+  .bg-muted,
+  .bg-accent,
+  .bg-popover {
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    letter-spacing: -0.025em;
+    font-weight: 600;
+  }
+}
+
+@layer components {
+  .page-container {
+    max-width: 80rem;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 1.5rem 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .page-container {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .page-container {
+      padding-left: 2rem;
+      padding-right: 2rem;
+    }
+  }
+
+  .card-base {
+    @apply rounded-xl border shadow-sm;
+    background-color: hsl(var(--card));
+    border-color: hsl(var(--border));
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:shadow-md;
+  }
+
+  .card-hover:hover {
+    border-color: hsl(var(--primary) / 0.2);
+  }
+
+  .section-title {
+    @apply text-xl mb-4;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+  }
+
+  .input-base {
+    @apply w-full px-4 py-2.5 rounded-lg border focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200;
+    background-color: hsl(var(--background));
+    border-color: hsl(var(--input));
+  }
+
+  .input-base:focus {
+    --tw-ring-color: hsl(var(--ring));
+  }
+
+  .btn-primary {
+    @apply px-4 py-2.5 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  .btn-primary:focus {
+    --tw-ring-color: hsl(var(--ring));
+  }
+
+  .btn-secondary {
+    @apply px-4 py-2.5 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200;
+    background-color: hsl(var(--secondary));
+    color: hsl(var(--secondary-foreground));
+  }
+
+  .btn-secondary:hover {
+    background-color: hsl(var(--muted));
+  }
+
+  .btn-secondary:focus {
+    --tw-ring-color: hsl(var(--ring));
+  }
+
+  .btn-ghost {
+    @apply px-4 py-2.5 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200;
+    color: hsl(var(--foreground));
+  }
+
+  .btn-ghost:hover {
+    background-color: hsl(var(--muted));
+  }
+
+  .btn-ghost:focus {
+    --tw-ring-color: hsl(var(--ring));
+  }
+
+  .tag-skill {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[hsl(var(--tag-skill-bg))] text-[hsl(var(--tag-skill))];
+  }
+
+  .tag-interest {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[hsl(var(--tag-interest-bg))] text-[hsl(var(--tag-interest))];
+  }
+
+  .tag-hackathon {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-[hsl(var(--tag-hackathon-bg))] text-[hsl(var(--tag-hackathon))];
+  }
+
+  .status-pending {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800;
+  }
+
+  .status-accepted {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+  }
+
+  .status-rejected {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
+  }
+
+  .nav-link {
+    @apply flex items-center gap-2 px-3 py-2 rounded-lg transition-colors duration-200;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .nav-link:hover {
+    color: hsl(var(--foreground));
+    background-color: hsl(var(--muted));
+  }
+
+  .nav-link-active {
+    @apply font-medium;
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+  }
+
+  .progress-bar {
+    @apply h-2 rounded-full overflow-hidden;
+    background-color: hsl(var(--muted));
+  }
+
+  .progress-bar-fill {
+    @apply h-full rounded-full transition-all duration-500;
+    background-color: hsl(var(--primary));
+  }
+}
+
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
