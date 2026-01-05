@@ -10,6 +10,7 @@ import { useAuth } from '@/components/providers/AuthProvider';
 const navLinks = [
   { name: 'Dashboard', href: '/dashboard' },
   { name: 'Discover', href: '/discover' },
+  { name: 'Connections', href: '/connections' },
   { name: 'Invitations', href: '/invitations' },
   { name: 'Hackathons', href: '/hackathons' },
   { name: 'Profile', href: '/profile' },
