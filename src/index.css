@@ -108,6 +108,15 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  .card-base,
+  .bg-card,
+  .bg-muted,
+  .bg-accent,
+  .bg-popover {
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
 
   h1, h2, h3, h4, h5, h6 {
