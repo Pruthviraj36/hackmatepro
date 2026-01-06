@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         'Reset your HackMate password',
         `<p>Hi ${user.name || user.username},</p>
         <p>You requested a password reset. Click the link below to reset your password:</p>
-        <p><a href="${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}">Reset Password</a></p>
+        <p><a href="${process.env.NEXT_PUBLIC_API_URL || 'https://hackmatepro.vercel.app'}/reset-password?token=${resetToken}">Reset Password</a></p>
         <p>This link will expire in 1 hour.</p>
         <p>If you didn't request this, please ignore this email.</p>`
       );

@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
           <p><strong>@${invitation.sender.username}</strong> wants to team up with you on HackMate!</p>
           ${messageHTML}
           <p>Check out their profile and respond to the invitation:</p>
-          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invitations" 
+          <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://hackmatepro.vercel.app'}/invitations" 
              style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0;">
             View Invitations
           </a>

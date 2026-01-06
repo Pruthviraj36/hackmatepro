@@ -4,7 +4,7 @@ const envSchema = z.object({
     DATABASE_URL: z.string().url(),
     JWT_SECRET: z.string().min(32),
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
-    NEXT_PUBLIC_APP_URL: z.string().url().default('http://localhost:3000'),
+    NEXT_PUBLIC_APP_URL: z.string().url().default('https://hackmatepro.vercel.app'),
     // Email settings (optional but recommended for production)
     SMTP_HOST: z.string().optional(),
     SMTP_PORT: z.coerce.number().optional(),

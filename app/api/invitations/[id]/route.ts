@@ -111,7 +111,7 @@ export async function PATCH(
             <h2 style="color: #10b981;">Great news! You've got a match! 🎉</h2>
             <p><strong>@${updatedInvitation.receiver.username}</strong> accepted your collaboration invite!</p>
             <p>You're now connected and can start working together on your next hackathon project.</p>
-            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/connections" 
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://hackmatepro.vercel.app'}/connections" 
                style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0;">
               View Your Connections
             </a>

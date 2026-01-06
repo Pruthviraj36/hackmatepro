@@ -1,7 +1,7 @@
 # API Documentation
 
 ## Base URL
-`http://localhost:3000/api`
+`https://hackmatepro.vercel.app/api`
 
 ## Authentication
 
