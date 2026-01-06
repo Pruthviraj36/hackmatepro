@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken, sendEmail } from '@/lib/auth';
 
 export async function PATCH(
   request: NextRequest,
@@ -64,6 +64,7 @@ export async function PATCH(
             username: true,
             name: true,
             avatar: true,
+            email: true,
           },
         },
         receiver: {
@@ -72,6 +73,7 @@ export async function PATCH(
             username: true,
             name: true,
             avatar: true,
+            email: true,
           },
         },
       },
@@ -99,6 +101,28 @@ export async function PATCH(
         },
         update: {},
       });
+
+      // Send email notification to sender about acceptance
+      try {
+        await sendEmail(
+          updatedInvitation.sender.email,
+          `@${updatedInvitation.receiver.username} accepted your invitation! 🎉`,
+          `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #10b981;">Great news! You've got a match! 🎉</h2>
+            <p><strong>@${updatedInvitation.receiver.username}</strong> accepted your collaboration invite!</p>
+            <p>You're now connected and can start working together on your next hackathon project.</p>
+            <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/connections" 
+               style="display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin: 10px 0;">
+              View Your Connections
+            </a>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">Time to build something amazing together!</p>
+          </div>`
+        );
+        console.log(`Acceptance email sent to ${updatedInvitation.sender.email}`);
+      } catch (emailError) {
+        console.error('Failed to send acceptance email:', emailError);
+        // Don't fail the acceptance if email fails
+      }
     }
 
     return NextResponse.json(updatedInvitation, { status: 200 });

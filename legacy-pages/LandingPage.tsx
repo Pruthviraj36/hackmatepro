@@ -38,7 +38,7 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navbar */}
-      <motion.nav 
+      <motion.nav
         className="border-b border-border bg-card/80 backdrop-blur-sm fixed top-0 left-0 right-0 z-50"
         initial={{ y: -100 }}
         animate={{ y: 0 }}
@@ -47,7 +47,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link href="/" className="flex items-center gap-2">
-              <motion.div 
+              <motion.div
                 className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center"
                 whileHover={{ scale: 1.1, rotate: 5 }}
               >
@@ -70,9 +70,9 @@ export default function LandingPage() {
       </motion.nav>
 
       {/* Hero */}
-      <section className="pt-32 pb-20 px-4">
+      <section className="pt-24 pb-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div 
+          <motion.div
             className="inline-flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-foreground rounded-full text-sm font-medium mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -81,7 +81,7 @@ export default function LandingPage() {
             <Sparkles className="w-4 h-4" />
             Privacy-first teammate matching
           </motion.div>
-          <motion.h1 
+          <motion.h1
             className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -90,7 +90,7 @@ export default function LandingPage() {
             Find your perfect
             <span className="text-primary"> hackathon team</span>
           </motion.h1>
-          <motion.p 
+          <motion.p
             className="text-lg sm:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -98,7 +98,7 @@ export default function LandingPage() {
           >
             Connect with developers, designers, and builders who share your passion. Match based on skills, interests, and goals—your contact info stays private until you both say yes.
           </motion.p>
-          <motion.div 
+          <motion.div
             className="flex flex-col sm:flex-row gap-3 justify-center"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -123,15 +123,15 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, i) => (
-              <motion.div 
-                key={stat.label} 
+              <motion.div
+                key={stat.label}
                 className="text-center"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
               >
-                <motion.div 
+                <motion.div
                   className="text-3xl sm:text-4xl font-bold text-primary mb-1"
                   initial={{ scale: 0.5 }}
                   whileInView={{ scale: 1 }}
@@ -150,7 +150,7 @@ export default function LandingPage() {
       {/* Features */}
       <section className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <motion.div 
+          <motion.div
             className="text-center mb-12"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -166,8 +166,8 @@ export default function LandingPage() {
           </motion.div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, i) => (
-              <motion.div 
-                key={feature.title} 
+              <motion.div
+                key={feature.title}
                 className="card-base p-6"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -175,7 +175,7 @@ export default function LandingPage() {
                 transition={{ duration: 0.5, delay: i * 0.1 }}
                 whileHover={{ y: -8, transition: { duration: 0.2 } }}
               >
-                <motion.div 
+                <motion.div
                   className="w-12 h-12 bg-accent rounded-lg flex items-center justify-center mb-4"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                 >
@@ -192,7 +192,7 @@ export default function LandingPage() {
       {/* How it works */}
       <section className="py-20 px-4 bg-muted/30">
         <div className="max-w-4xl mx-auto">
-          <motion.div 
+          <motion.div
             className="text-center mb-12"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -210,15 +210,15 @@ export default function LandingPage() {
               { step: '3', title: 'Express interest', description: 'Click "Interested" on profiles you like. They won\'t see your contact info—just your profile.' },
               { step: '4', title: 'Match and connect', description: 'When they\'re interested too, it\'s a match! Now you can see each other\'s contact details.' },
             ].map((item, i) => (
-              <motion.div 
-                key={i} 
+              <motion.div
+                key={i}
                 className="flex gap-4 items-start"
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.1 }}
               >
-                <motion.div 
+                <motion.div
                   className="w-10 h-10 bg-primary text-primary-foreground rounded-full flex items-center justify-center font-bold flex-shrink-0"
                   whileHover={{ scale: 1.1 }}
                 >
@@ -237,7 +237,7 @@ export default function LandingPage() {
       {/* CTA */}
       <section className="py-20 px-4">
         <div className="max-w-3xl mx-auto text-center">
-          <motion.div 
+          <motion.div
             className="card-base p-8 sm:p-12 bg-gradient-to-br from-primary/5 to-accent"
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}

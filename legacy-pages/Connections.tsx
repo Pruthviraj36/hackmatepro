@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Users, Mail, Github, Linkedin, Twitter, Globe, MessageSquare, ExternalLink, Loader2, User as UserIcon } from 'lucide-react';
@@ -7,6 +8,7 @@ import { useAuth } from '@/components/providers/AuthProvider';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { ChatWindow } from '@/components/chat/ChatWindow';
 
 interface User {
     id: string;
@@ -40,6 +42,12 @@ export default function Connections() {
     const router = useRouter();
     const { toast } = useToast();
     const queryClient = useQueryClient();
+    const [activeChat, setActiveChat] = useState<{
+        recipientId: string;
+        recipientUsername: string;
+        recipientAvatar: string | null;
+        conversationId: string | null;
+    } | null>(null);
 
     const { data: matches, isLoading } = useQuery<Match[]>({
         queryKey: ['matches'],
@@ -47,6 +55,25 @@ export default function Connections() {
         enabled: !!token,
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
+
+    // Fetch conversations for unread counts
+    const { data: conversations } = useQuery({
+        queryKey: ['conversations'],
+        queryFn: () => fetcher('/api/messages', token),
+        enabled: !!token,
+        refetchInterval: 5000, // Refresh every 5 seconds
+        staleTime: 1000,
+    });
+
+    // Helper function to get unread count for a user
+    const getUnreadCount = (userId: string) => {
+        if (!conversations || !authUser) return 0;
+        const conversation = conversations.find((conv: any) =>
+            (conv.user1Id === authUser.id && conv.user2Id === userId) ||
+            (conv.user2Id === authUser.id && conv.user1Id === userId)
+        );
+        return conversation?._count?.messages || 0;
+    };
 
     const prefetchProfile = async (username: string) => {
         if (!token) return;
@@ -136,10 +163,32 @@ export default function Connections() {
                                     </div>
 
                                     {match.user.bio && (
-                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-6 italic">
+                                        <p className="text-sm text-muted-foreground line-clamp-2 mb-4 italic">
                                             "{match.user.bio}"
                                         </p>
                                     )}
+
+                                    {/* Last Message Preview */}
+                                    {(() => {
+                                        const conv = conversations?.find((c: any) =>
+                                            (c.user1Id === authUser?.id && c.user2Id === match.user.id) ||
+                                            (c.user2Id === authUser?.id && c.user1Id === match.user.id)
+                                        );
+                                        const lastMsg = conv?.messages?.[0];
+                                        if (!lastMsg) return null;
+
+                                        return (
+                                            <div className="mb-6 p-3 bg-muted/50 rounded-lg border border-border/50">
+                                                <p className="text-[10px] font-bold text-muted-foreground uppercase mb-1 flex items-center gap-1">
+                                                    <MessageSquare className="w-3 h-3" />
+                                                    Latest Message
+                                                </p>
+                                                <p className="text-xs text-foreground line-clamp-1 italic">
+                                                    {lastMsg.senderId === authUser?.id ? 'You: ' : ''}{lastMsg.content}
+                                                </p>
+                                            </div>
+                                        );
+                                    })()}
 
                                     <div className="space-y-4">
                                         <div className="flex flex-wrap gap-3">
@@ -189,11 +238,27 @@ export default function Connections() {
                                         </div>
 
                                         <button
-                                            className="btn-primary w-full flex items-center justify-center gap-2 py-2.5"
-                                            onClick={() => toast({ title: 'Messaging coming soon!', description: 'Team chat feature is under development.' })}
+                                            className="btn-primary w-full flex items-center justify-center gap-2 py-2.5 relative"
+                                            onClick={() => {
+                                                const conv = conversations?.find((c: any) =>
+                                                    (c.user1Id === authUser?.id && c.user2Id === match.user.id) ||
+                                                    (c.user2Id === authUser?.id && c.user1Id === match.user.id)
+                                                );
+                                                setActiveChat({
+                                                    recipientId: match.user.id,
+                                                    recipientUsername: match.user.username,
+                                                    recipientAvatar: match.user.avatar,
+                                                    conversationId: conv?.id || null,
+                                                });
+                                            }}
                                         >
                                             <MessageSquare className="w-4 h-4" />
                                             Message
+                                            {getUnreadCount(match.user.id) > 0 && (
+                                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                                                    {getUnreadCount(match.user.id)}
+                                                </span>
+                                            )}
                                         </button>
                                     </div>
                                 </motion.div>
@@ -222,6 +287,20 @@ export default function Connections() {
                     </motion.div>
                 )}
             </div>
+
+            {/* Chat Window */}
+            <AnimatePresence>
+                {activeChat && (
+                    <ChatWindow
+                        {...activeChat}
+                        onClose={() => {
+                            setActiveChat(null);
+                            // Refresh conversations to update unread counts
+                            queryClient.invalidateQueries({ queryKey: ['conversations'] });
+                        }}
+                    />
+                )}
+            </AnimatePresence>
         </DashboardLayout>
     );
 }

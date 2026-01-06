@@ -31,8 +31,26 @@ export async function GET(request: NextRequest) {
 
     const matchedIds = matches.map(m => m.user1Id === userId ? m.user2Id : m.user1Id);
 
+    // Fetch pending invitations to exclude them
+    const pendingInvitations = await prisma.invitation.findMany({
+      where: {
+        OR: [
+          { senderId: userId, status: 'PENDING' },
+          { receiverId: userId, status: 'PENDING' },
+        ],
+      },
+      select: {
+        senderId: true,
+        receiverId: true,
+      },
+    });
+
+    const invitedUserIds = pendingInvitations.map(inv =>
+      inv.senderId === userId ? inv.receiverId : inv.senderId
+    );
+
     const where: any = {
-      id: { notIn: [userId, ...matchedIds] },
+      id: { notIn: [userId, ...matchedIds, ...invitedUserIds] },
     };
 
     if (skills.length > 0 && skills[0] !== '') {

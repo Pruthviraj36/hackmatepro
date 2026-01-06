@@ -81,6 +81,11 @@ export default function Invitations() {
         });
         // Update local state instead of refetching everything
         setInvitations(prev => prev.map(inv => inv.id === id ? { ...inv, status } : inv));
+
+        // Invalidate matches query to refresh Connections page
+        if (status === 'ACCEPTED') {
+          queryClient.invalidateQueries({ queryKey: ['matches'] });
+        }
       } else {
         const data = await response.json();
         toast({ title: 'Error', description: data.error || 'Failed to update invitation', variant: 'destructive' });
