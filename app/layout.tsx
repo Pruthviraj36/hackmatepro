@@ -14,6 +14,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'HackMate - Find your perfect hackathon team',
   description: 'Connect with developers, designers, and builders who share your passion. Match based on skills, interests, and goals.',
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({

@@ -5,6 +5,7 @@ import { signupSchema } from '@/lib/validation';
 import { handlePrismaError } from '@/lib/errors';
 import { generateSecureToken, sendEmail } from '@/lib/auth';
 import { authRateLimit } from '@/lib/rate-limit';
+import { env } from '@/lib/env';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,8 +45,8 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate verification token
-    const verificationToken = generateSecureToken();
+    // Generate 6-digit verification code
+    const verificationToken = Math.floor(100000 + Math.random() * 900000).toString();
     const verificationTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
     // Create user
@@ -70,21 +71,31 @@ export async function POST(request: NextRequest) {
 
     // Send verification email
     try {
+      console.log(`Attempting to send verification email to ${email}...`);
       await sendEmail(
         email,
         'Verify your HackMate account',
-        `<p>Hi ${name || username},</p>
-        <p>Please verify your email by clicking the link below:</p>
-        <p><a href="${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}">Verify Email</a></p>
-        <p>This link will expire in 1 hour.</p>`
+        `<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #10b981;">Welcome to HackMate, @${username}! 🚀</h2>
+          <p>Your verification code is:</p>
+          <div style="background: #f3f4f6; padding: 20px; text-align: center; border-radius: 8px; margin: 20px 0;">
+            <h1 style="color: #10b981; font-size: 48px; letter-spacing: 8px; margin: 0;">${verificationToken}</h1>
+          </div>
+          <p>Enter this code on the verification page to activate your account.</p>
+          <p style="color: #6b7280; font-size: 14px;">This code will expire in 1 hour.</p>
+        </div>`
       );
+      console.log(`Verification email sent successfully to ${email}`);
     } catch (emailError) {
       console.error('Failed to send verification email:', emailError);
-      // Don't fail the signup if email fails
     }
 
     return NextResponse.json(
-      { user, message: 'User created successfully. Please check your email to verify your account.' },
+      {
+        user,
+        message: 'Account created! Please check your email for a 6-digit verification code.',
+        redirectTo: `/verify-email?email=${encodeURIComponent(email)}`
+      },
       { status: 201 }
     );
   } catch (error) {

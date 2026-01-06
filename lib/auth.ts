@@ -39,10 +39,15 @@ export function generateSecureToken(): string {
 }
 
 export async function sendEmail(to: string, subject: string, html: string) {
-  await transporter.sendMail({
-    from: env.FROM_EMAIL || 'noreply@hackmate.com',
-    to,
-    subject,
-    html,
-  });
+  try {
+    await transporter.sendMail({
+      from: env.FROM_EMAIL || 'noreply@hackmate.com',
+      to,
+      subject,
+      html,
+    });
+  } catch (error) {
+    console.error('Nodemailer Error:', error);
+    throw error;
+  }
 }

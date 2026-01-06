@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
 
     const { token } = validationResult.data;
 
-    // Find user with valid verification token
+    // Find user with valid verification code (6-digit token)
     const user = await prisma.user.findFirst({
       where: {
         verificationToken: token,
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'Invalid or expired verification token' },
+        { error: 'Invalid or expired verification code' },
         { status: 400 }
       );
     }

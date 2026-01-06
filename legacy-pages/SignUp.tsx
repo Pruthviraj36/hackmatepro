@@ -9,8 +9,6 @@ import { AuthLayout } from '@/components/layout/AuthLayout';
 export default function SignUp() {
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
-  const [name, setName] = useState('');
-  const [bio, setBio] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,7 +33,7 @@ export default function SignUp() {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, username, password, name, bio }),
+        body: JSON.stringify({ email, username, password }),
       });
 
       const data = await response.json();
@@ -48,7 +46,13 @@ export default function SignUp() {
         title: 'Account created!',
         description: data.message,
       });
-      router.push('/login');
+
+      // Redirect to verification page if redirectTo is provided
+      if (data.redirectTo) {
+        router.push(data.redirectTo);
+      } else {
+        router.push('/login');
+      }
     } catch (error) {
       toast({
         title: 'Signup failed',
@@ -66,101 +70,68 @@ export default function SignUp() {
       subtitle="Join HackMate and find your perfect hackathon teammates"
     >
       <form className="space-y-4" onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
-              Email
-            </label>
-            <input
-              type="email"
-              id="email"
-              className="input-base"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="username" className="block text-sm font-medium text-foreground mb-1.5">
-              Username
-            </label>
-            <input
-              type="text"
-              id="username"
-              className="input-base"
-              placeholder="alexdev"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
+        <div>
+          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1.5">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            className="input-base"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            disabled={isSubmitting}
+          />
         </div>
 
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1.5">
-            Full Name (Display Name)
+          <label htmlFor="username" className="block text-sm font-medium text-foreground mb-1.5">
+            Username
           </label>
           <input
             type="text"
-            id="name"
+            id="username"
             className="input-base"
-            placeholder="Alex Designer"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
+            placeholder="alexdev"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
             disabled={isSubmitting}
           />
         </div>
 
         <div>
-          <label htmlFor="bio" className="block text-sm font-medium text-foreground mb-1.5">
-            Brief Bio
+          <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
+            Password
           </label>
-          <textarea
-            id="bio"
-            className="input-base min-h-[80px] py-2"
-            placeholder="Tell us about yourself..."
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
+          <input
+            type="password"
+            id="password"
+            className="input-base"
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
             disabled={isSubmitting}
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1.5">
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              className="input-base"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1.5">
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              className="input-base"
-              placeholder="••••••••"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              disabled={isSubmitting}
-            />
-          </div>
+        <div>
+          <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1.5">
+            Confirm Password
+          </label>
+          <input
+            type="password"
+            id="confirmPassword"
+            className="input-base"
+            placeholder="••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            disabled={isSubmitting}
+          />
         </div>
 
         <div className="flex items-start gap-2 pt-2">
