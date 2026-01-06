@@ -278,7 +278,7 @@ export default function LandingPage() {
             <span className="font-semibold text-foreground">HackMate</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2025 HackMate. Privacy-first teammate matching.
+            © 2026 HackMate. Privacy-first teammate matching.
           </p>
         </div>
       </footer>
