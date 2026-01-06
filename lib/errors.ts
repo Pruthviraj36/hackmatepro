@@ -1,6 +1,5 @@
-import { Prisma } from './generated/prisma/client';
 import { NextResponse } from 'next/server';
-
+import { Prisma } from '@prisma/client';
 export function handlePrismaError(error: unknown): NextResponse {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
