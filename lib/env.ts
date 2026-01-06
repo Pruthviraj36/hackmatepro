@@ -25,10 +25,9 @@ const envServer = envSchema.safeParse({
     FROM_EMAIL: process.env.FROM_EMAIL,
 });
 
-if (!envServer.success) {
-    console.error('❌ Invalid environment variables:', envServer.error.flatten().fieldErrors);
-    throw new Error('Invalid environment variables');
-}
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build' || process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL;
 
-export const env = envServer.data;
+export const env = envServer.success
+    ? envServer.data
+    : (isBuildPhase ? {} as any : (() => { throw new Error('Invalid environment variables'); })());
 export type Env = z.infer<typeof envSchema>;
